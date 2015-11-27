@@ -282,7 +282,9 @@ uis.controller('uiSelectCtrl',
               }
             } else {
               // keyboard nav happened first, user selected from dropdown
-              item = ctrl.items[ctrl.activeIndex];
+              if (!$event) {
+                item = ctrl.items[ctrl.activeIndex];
+              }
             }
           } else {
             // tagging always operates at index zero, taggingLabel === false pushes
