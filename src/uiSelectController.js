@@ -275,14 +275,16 @@ uis.controller('uiSelectCtrl',
         if(ctrl.tagging.isActivated) {
           // if taggingLabel is disabled, we pull from ctrl.search val
           if ( ctrl.taggingLabel === false ) {
-            if ( ctrl.activeIndex < 0 ) {
+            if ( !$event && ctrl.activeIndex < 0 ) {
               item = ctrl.tagging.fct !== undefined ? ctrl.tagging.fct(ctrl.search) : ctrl.search;
               if (!item || angular.equals( ctrl.items[0], item ) ) {
                 return;
               }
             } else {
               // keyboard nav happened first, user selected from dropdown
-              item = ctrl.items[ctrl.activeIndex];
+              if (!$event) {
+                item = ctrl.items[ctrl.activeIndex];
+              }
             }
           } else {
             // tagging always operates at index zero, taggingLabel === false pushes
@@ -495,12 +497,17 @@ uis.controller('uiSelectCtrl',
   ctrl.searchInput.on('paste', function (e) {
     var data = e.originalEvent.clipboardData.getData('text/plain');
     if (data && data.length > 0 && ctrl.taggingTokens.isActivated && ctrl.tagging.fct) {
-      var items = data.split(ctrl.taggingTokens.tokens[0]); // split by first token only
+      var taggingTokensStr = ctrl.taggingTokens.attr
+       .replace('SPACE','\\s')
+       .replace('|ENTER','')
+       .replace('ENTER|','');
+      var taggingTokensRegExp = new RegExp(taggingTokensStr, 'g');
+      var items = data.split(taggingTokensRegExp); // split by first token only
       if (items && items.length > 0) {
         angular.forEach(items, function (item) {
           var newItem = ctrl.tagging.fct(item);
           if (newItem) {
-            ctrl.select(newItem, true);
+            ctrl.select(newItem, true, e);
           }
         });
         e.preventDefault();
